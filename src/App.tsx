@@ -87,7 +87,7 @@ function App() {
           className="transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
         >
           <img 
-            src="/logo-regit.png" 
+            src={`${import.meta.env.BASE_URL}logo-regit.png`}
             alt="REGIT Logo" 
             className="h-10 md:h-12 w-auto"
             style={{ maxWidth: '200px' }}
