@@ -216,12 +216,12 @@ export const questions: Question[] = [
   {
     id: 15,
     category: "パートナーシップ",
-    question: "外部のAI専門企業・研究機関との連携はありますか？",
+    question: "現時点で古い業務システム・担当者のいないシステムが社内に存在していますか？",
     options: [
-      { value: 0, label: "連携なし" },
-      { value: 3, label: "検討中" },
-      { value: 5, label: "一部連携" },
-      { value: 6, label: "積極的に連携" }
+      { value: 0, label: "多数存在し、大きな課題となっている" },
+      { value: 3, label: "いくつか存在するが、なんとか運用している" },
+      { value: 5, label: "少し存在するが、計画的に更新を進めている" },
+      { value: 6, label: "ほとんど存在しない・全て管理されている" }
     ]
   }
 ];
