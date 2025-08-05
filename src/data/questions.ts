@@ -184,12 +184,12 @@ export const questions: Question[] = [
   {
     id: 12,
     category: "実践・運用",
-    question: "AI活用の効果測定・評価体制は整っていますか？",
+    question: "AIを使って業務の効率化や成果を上げた場合、その取り組みが人事評価にきちんと結びつくような体制になっていますか？",
     options: [
-      { value: 0, label: "整っていない" },
-      { value: 3, label: "検討中" },
-      { value: 5, label: "部分的に整備" },
-      { value: 6, label: "完全に整備" }
+      { value: 0, label: "全く結びついていない" },
+      { value: 3, label: "検討中・一部で試行" },
+      { value: 5, label: "ある程度評価に反映される" },
+      { value: 6, label: "しっかりと評価される仕組みがある" }
     ]
   },
   {
