@@ -112,7 +112,7 @@ function App() {
             </div>
             <h1 className="text-5xl font-bold text-dark mb-4">AI 即日診断</h1>
             <p className="text-xl text-gray-600 mb-8">
-              15の質問に答えて、あなたの組織のAI活用準備度を診断します
+              20の質問に答えて、あなたの組織のAI活用準備度を診断します
             </p>
             <button
               onClick={handleStartSurvey}
