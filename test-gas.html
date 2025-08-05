@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAS Endpoint Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google Apps Script Endpoint Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <p>Endpoint: <code id="endpoint"></code></p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Actions</h2>
+        <button onclick="testGET()">Test GET Request</button>
+        <button onclick="testPOST()">Test POST Request</button>
+        <button onclick="testNoCORS()">Test POST (no-cors mode)</button>
+        <button onclick="testFormData()">Test POST with FormData</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec';
+        document.getElementById('endpoint').textContent = GAS_URL;
+
+        const testData = {
+            timestamp: new Date().toISOString(),
+            company: "テスト株式会社",
+            industry: "IT",
+            headcount: "101-500",
+            name: "テスト 太郎",
+            email: "test@example.com",
+            answers: {
+                "q1": 2,
+                "q2": 1,
+                "q3": 0,
+                "q4": 1,
+                "q5": 2,
+                "q6": 1,
+                "q7": 0,
+                "q8": 1,
+                "q9": 2,
+                "q10": 0,
+                "q11": 1,
+                "q12": 1,
+                "q13": 2,
+                "q14": 1,
+                "q15": 2
+            },
+            total_score: 78,
+            tier: "★★"
+        };
+
+        function addResult(title, content, isError = false) {
+            const resultDiv = document.getElementById('results');
+            const resultItem = document.createElement('div');
+            resultItem.innerHTML = `
+                <h3>${title}</h3>
+                <pre class="${isError ? 'error' : ''}">${content}</pre>
+            `;
+            resultDiv.appendChild(resultItem);
+        }
+
+        async function testGET() {
+            try {
+                const response = await fetch(GAS_URL);
+                const text = await response.text();
+                addResult('GET Request Result', `Status: ${response.status}\nResponse: ${text}`);
+            } catch (error) {
+                addResult('GET Request Error', error.toString(), true);
+            }
+        }
+
+        async function testPOST() {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                const text = await response.text();
+                addResult('POST Request Result', `Status: ${response.status}\nResponse: ${text}`);
+            } catch (error) {
+                addResult('POST Request Error', error.toString(), true);
+            }
+        }
+
+        async function testNoCORS() {
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(testData)
+                });
+                addResult('POST (no-cors) Result', 'Request sent successfully (response not readable in no-cors mode)');
+            } catch (error) {
+                addResult('POST (no-cors) Error', error.toString(), true);
+            }
+        }
+
+        async function testFormData() {
+            try {
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(testData));
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const text = await response.text();
+                addResult('POST with FormData Result', `Status: ${response.status}\nResponse: ${text}`);
+            } catch (error) {
+                addResult('POST with FormData Error', error.toString(), true);
+            }
+        }
+    </script>
+</body>
+</html>

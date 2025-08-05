@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAS Detailed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .info {
+            color: #004085;
+            background: #d1ecf1;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.pending {
+            background: #ffc107;
+            color: #000;
+        }
+        .status.success {
+            background: #28a745;
+            color: white;
+        }
+        .status.error {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Apps Script 詳細テスト</h1>
+        
+        <div class="info">
+            <strong>エンドポイント:</strong> <code id="endpoint"></code><br>
+            <strong>現在時刻:</strong> <span id="current-time"></span>
+        </div>
+
+        <div class="test-section">
+            <h2>1. 基本的な接続テスト</h2>
+            <button onclick="testBasicConnection()">GET リクエストテスト</button>
+            <button onclick="testCORS()">CORS チェック</button>
+            <div id="basic-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. データ送信テスト</h2>
+            <button onclick="testJSONPost()">JSON POST</button>
+            <button onclick="testNoCorsPost()">No-CORS POST</button>
+            <button onclick="testFormDataPost()">FormData POST</button>
+            <button onclick="testURLEncodedPost()">URL Encoded POST</button>
+            <div id="post-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. 実際のデータ送信テスト</h2>
+            <button onclick="sendRealData()">本番データ形式で送信</button>
+            <div id="real-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>テスト結果サマリー</h2>
+            <div id="summary"></div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec';
+        document.getElementById('endpoint').textContent = GAS_URL;
+        
+        // 現在時刻を表示
+        function updateTime() {
+            document.getElementById('current-time').textContent = new Date().toLocaleString('ja-JP');
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // テストデータ
+        const testData = {
+            timestamp: new Date().toISOString(),
+            company: "テスト株式会社",
+            industry: "IT",
+            headcount: "101-500",
+            name: "テスト 太郎",
+            email: "test@example.com",
+            answers: {
+                "q1": 2, "q2": 1, "q3": 0, "q4": 1, "q5": 2,
+                "q6": 1, "q7": 0, "q8": 1, "q9": 2, "q10": 0,
+                "q11": 1, "q12": 1, "q13": 2, "q14": 1, "q15": 2
+            },
+            total_score: 78,
+            tier: "★★"
+        };
+
+        // 結果を表示する関数
+        function showResult(containerId, title, content, type = 'info') {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = type;
+            resultDiv.innerHTML = `
+                <strong>${title}</strong>
+                <span class="status ${type}">${type.toUpperCase()}</span>
+                <pre>${typeof content === 'object' ? JSON.stringify(content, null, 2) : content}</pre>
+            `;
+            container.appendChild(resultDiv);
+        }
+
+        // 1. 基本的な接続テスト
+        async function testBasicConnection() {
+            try {
+                const response = await fetch(GAS_URL);
+                const text = await response.text();
+                showResult('basic-results', 'GET Request', `Status: ${response.status}\n${text}`, 'success');
+            } catch (error) {
+                showResult('basic-results', 'GET Request Failed', error.toString(), 'error');
+            }
+        }
+
+        async function testCORS() {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                showResult('basic-results', 'CORS Headers', headers, 'info');
+            } catch (error) {
+                showResult('basic-results', 'CORS Check', error.toString(), 'error');
+            }
+        }
+
+        // 2. データ送信テスト
+        async function testJSONPost() {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                const text = await response.text();
+                showResult('post-results', 'JSON POST', `Status: ${response.status}\n${text}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('post-results', 'JSON POST Failed', error.toString(), 'error');
+            }
+        }
+
+        async function testNoCorsPost() {
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(testData)
+                });
+                showResult('post-results', 'No-CORS POST', 'リクエスト送信完了（レスポンスは読み取れません）', 'success');
+            } catch (error) {
+                showResult('post-results', 'No-CORS POST Failed', error.toString(), 'error');
+            }
+        }
+
+        async function testFormDataPost() {
+            try {
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(testData));
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const text = await response.text();
+                showResult('post-results', 'FormData POST', `Status: ${response.status}\n${text}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('post-results', 'FormData POST Failed', error.toString(), 'error');
+            }
+        }
+
+        async function testURLEncodedPost() {
+            try {
+                const params = new URLSearchParams();
+                params.append('data', JSON.stringify(testData));
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params
+                });
+                const text = await response.text();
+                showResult('post-results', 'URL Encoded POST', `Status: ${response.status}\n${text}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('post-results', 'URL Encoded POST Failed', error.toString(), 'error');
+            }
+        }
+
+        // 3. 実際のデータ送信テスト
+        async function sendRealData() {
+            const methods = [
+                {
+                    name: 'Method 1: No-CORS',
+                    request: {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'text/plain',
+                        },
+                        body: JSON.stringify(testData)
+                    }
+                },
+                {
+                    name: 'Method 2: FormData + No-CORS',
+                    request: async () => {
+                        const formData = new FormData();
+                        formData.append('data', JSON.stringify(testData));
+                        return {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            body: formData
+                        };
+                    }
+                },
+                {
+                    name: 'Method 3: URL Params + No-CORS',
+                    request: () => {
+                        const params = new URLSearchParams();
+                        params.append('data', JSON.stringify(testData));
+                        return {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            body: params
+                        };
+                    }
+                }
+            ];
+
+            for (const method of methods) {
+                try {
+                    const requestOptions = typeof method.request === 'function' ? await method.request() : method.request;
+                    await fetch(GAS_URL, requestOptions);
+                    showResult('real-results', method.name, 'リクエスト送信成功', 'success');
+                } catch (error) {
+                    showResult('real-results', method.name, error.toString(), 'error');
+                }
+            }
+
+            showResult('real-results', '重要', 'no-corsモードでは送信は成功していてもレスポンスが読めません。\nGoogle スプレッドシートを確認してデータが記録されているか確認してください。', 'info');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スプレッドシートID確認ツール</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d93025;
+            text-align: center;
+        }
+        .alert {
+            background: #fce4ec;
+            border: 2px solid #d93025;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .alert h2 {
+            color: #d93025;
+            margin-top: 0;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .highlight {
+            background: #ff0;
+            color: #000;
+            padding: 2px 4px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1557b0;
+        }
+        .success {
+            background: #c8e6c9;
+            border: 2px solid #4caf50;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-left: 4px solid #1a73e8;
+            border-radius: 4px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚠️ スプレッドシートID設定確認</h1>
+        
+        <div class="alert">
+            <h2>問題: データが保存されない原因</h2>
+            <p><strong>GASコードのスプレッドシートIDが設定されていない可能性が高いです。</strong></p>
+            <p>以下の手順で確認・修正してください。</p>
+        </div>
+
+        <div class="step">
+            <h3>ステップ 1: スプレッドシートIDを取得</h3>
+            <p>1. Google スプレッドシートを開く</p>
+            <p>2. URLを確認：</p>
+            <div class="code-block">
+https://docs.google.com/spreadsheets/d/<span class="highlight">1234567890abcdefg...</span>/edit
+            </div>
+            <p>3. ハイライト部分がスプレッドシートIDです</p>
+            
+            <label>スプレッドシートのURLを貼り付けてください：</label>
+            <input type="text" id="spreadsheet-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <button onclick="extractId()">IDを抽出</button>
+            
+            <div id="extracted-id"></div>
+        </div>
+
+        <div class="step">
+            <h3>ステップ 2: GASコードを確認</h3>
+            <p>Google Apps Scriptで以下の行を探してください：</p>
+            <div class="code-block">
+const spreadsheetId = 'ここにスプレッドシートIDを入力'; // ← 変更する場所
+            </div>
+            <p>この行が変更されていない場合、データは保存されません。</p>
+        </div>
+
+        <div class="step">
+            <h3>ステップ 3: 修正後のコード</h3>
+            <div id="fixed-code" style="display: none;">
+                <p>以下のように修正してください：</p>
+                <div class="code-block" id="code-suggestion">
+const spreadsheetId = 'YOUR_ID_HERE';
+                </div>
+                <button onclick="copyCode()">コードをコピー</button>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>ステップ 4: テスト関数を実行</h3>
+            <p>GASエディタで以下のテスト関数を実行して確認：</p>
+            <div class="code-block">
+function testSpreadsheetConnection() {
+  const spreadsheetId = 'YOUR_SPREADSHEET_ID'; // ← ここに実際のIDを入力
+  
+  try {
+    const sheet = SpreadsheetApp.openById(spreadsheetId);
+    console.log('✅ スプレッドシートに接続成功！');
+    console.log('シート名:', sheet.getName());
+    
+    const targetSheet = sheet.getSheetByName('回答一覧');
+    if (targetSheet) {
+      console.log('✅ 「回答一覧」シートが見つかりました');
+      targetSheet.appendRow(['接続テスト', new Date()]);
+      console.log('✅ テストデータを追加しました');
+    } else {
+      console.log('❌ 「回答一覧」シートが見つかりません');
+    }
+  } catch (error) {
+    console.log('❌ エラー:', error.toString());
+  }
+}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function extractId() {
+            const url = document.getElementById('spreadsheet-url').value;
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+            
+            if (match && match[1]) {
+                const id = match[1];
+                document.getElementById('extracted-id').innerHTML = `
+                    <div class="success">
+                        <strong>抽出されたID:</strong><br>
+                        <code>${id}</code>
+                    </div>
+                `;
+                
+                document.getElementById('fixed-code').style.display = 'block';
+                document.getElementById('code-suggestion').textContent = `const spreadsheetId = '${id}';`;
+            } else {
+                document.getElementById('extracted-id').innerHTML = `
+                    <div class="alert">
+                        <p>URLからIDを抽出できませんでした。正しいスプレッドシートのURLを入力してください。</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function copyCode() {
+            const code = document.getElementById('code-suggestion').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('コードをコピーしました！');
+            });
+        }
+    </script>
+</body>
+</html>

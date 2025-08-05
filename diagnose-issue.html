@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAS送信問題診断ツール</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            cursor: pointer;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #1557b0;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result-box {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e3f2fd;
+            border-left: 4px solid #1a73e8;
+            border-radius: 4px;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        #status-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-checking {
+            background: #ffc107;
+            color: #000;
+        }
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GAS送信問題診断ツール <span id="status-indicator" class="status-checking">診断中...</span></h1>
+        
+        <div class="test-section">
+            <h3>📋 現在の設定</h3>
+            <div class="info result-box">
+GAS URL: <span id="gas-url"></span>
+現在時刻: <span id="current-time"></span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 診断ステップ 1: 基本接続テスト</h3>
+            <button onclick="testBasicConnection()">接続テスト実行</button>
+            <div id="basic-test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 診断ステップ 2: CORSポリシー確認</h3>
+            <button onclick="testCORSPolicy()">CORSテスト実行</button>
+            <div id="cors-test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 診断ステップ 3: データ送信テスト</h3>
+            <button onclick="testAllMethods()">全方式でテスト送信</button>
+            <div id="send-test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💡 推奨される解決方法</h3>
+            <div id="recommendations" class="warning result-box">診断を実行してください...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 GASの実行ログを確認する方法</h3>
+            <div class="step">
+                <strong>1. Google Apps Scriptエディタを開く</strong>
+                <p>GASのプロジェクトページを開きます</p>
+            </div>
+            <div class="step">
+                <strong>2. 実行ログを確認</strong>
+                <p>エディタの左側メニューから「実行数」をクリック → 実行履歴を確認</p>
+            </div>
+            <div class="step">
+                <strong>3. デバッグ版コードでテスト</strong>
+                <p>上記のデバッグ版GASコードを使用して、console.logの出力を確認</p>
+            </div>
+            <div class="step">
+                <strong>4. testDirectSave関数を実行</strong>
+                <p>GASエディタで直接testDirectSave()関数を実行して、スプレッドシートへの書き込みが成功するか確認</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec';
+        document.getElementById('gas-url').textContent = GAS_URL;
+        
+        // 現在時刻を表示
+        function updateTime() {
+            document.getElementById('current-time').textContent = new Date().toLocaleString('ja-JP');
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // テストデータ
+        const testData = {
+            timestamp: new Date().toISOString(),
+            company: "診断テスト株式会社",
+            industry: "IT",
+            headcount: "101-500",
+            name: "診断テスト 太郎",
+            email: "diagnose@example.com",
+            answers: {
+                "q1": 2, "q2": 1, "q3": 0, "q4": 1, "q5": 2,
+                "q6": 1, "q7": 0, "q8": 1, "q9": 2, "q10": 0,
+                "q11": 1, "q12": 1, "q13": 2, "q14": 1, "q15": 2
+            },
+            total_score: 78,
+            tier: "★★"
+        };
+
+        let testResults = {
+            connection: null,
+            cors: null,
+            sending: null
+        };
+
+        function updateStatus() {
+            const indicator = document.getElementById('status-indicator');
+            if (testResults.connection === null) {
+                indicator.className = 'status-checking';
+                indicator.textContent = '診断中...';
+            } else if (testResults.connection === false || testResults.sending === false) {
+                indicator.className = 'status-error';
+                indicator.textContent = '問題あり';
+            } else if (testResults.connection === true && testResults.sending === true) {
+                indicator.className = 'status-success';
+                indicator.textContent = '正常';
+            } else {
+                indicator.className = 'status-checking';
+                indicator.textContent = '診断中...';
+            }
+        }
+
+        async function testBasicConnection() {
+            const resultDiv = document.getElementById('basic-test-result');
+            resultDiv.innerHTML = '<div class="info result-box">テスト中...</div>';
+            
+            try {
+                const response = await fetch(GAS_URL);
+                const text = await response.text();
+                const data = JSON.parse(text);
+                
+                testResults.connection = true;
+                resultDiv.innerHTML = `
+                    <div class="success result-box">
+✅ 接続成功
+Status: ${response.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                testResults.connection = false;
+                resultDiv.innerHTML = `
+                    <div class="error result-box">
+❌ 接続失敗
+Error: ${error.toString()}
+                    </div>
+                `;
+            }
+            updateStatus();
+            updateRecommendations();
+        }
+
+        async function testCORSPolicy() {
+            const resultDiv = document.getElementById('cors-test-result');
+            resultDiv.innerHTML = '<div class="info result-box">テスト中...</div>';
+            
+            let results = [];
+            
+            // Test 1: 通常のCORS
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                results.push('✅ CORS POST: 成功 (Status: ' + response.status + ')');
+                testResults.cors = true;
+            } catch (error) {
+                results.push('❌ CORS POST: ' + error.toString());
+                testResults.cors = false;
+            }
+            
+            // Test 2: no-cors
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(testData)
+                });
+                results.push('✅ no-cors POST: リクエスト送信成功');
+            } catch (error) {
+                results.push('❌ no-cors POST: ' + error.toString());
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="${testResults.cors ? 'warning' : 'error'} result-box">
+${results.join('\n')}
+
+${!testResults.cors ? '⚠️ CORSエラーが発生しています。no-corsモードを使用する必要があります。' : ''}
+                </div>
+            `;
+            updateStatus();
+            updateRecommendations();
+        }
+
+        async function testAllMethods() {
+            const resultDiv = document.getElementById('send-test-result');
+            resultDiv.innerHTML = '<div class="info result-box">テスト中...</div>';
+            
+            let results = [];
+            let successCount = 0;
+            
+            // Method 1: JSON with text/plain
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                results.push('✅ Method 1 (JSON + text/plain): 送信完了');
+                successCount++;
+            } catch (error) {
+                results.push('❌ Method 1: ' + error.toString());
+            }
+            
+            // Method 2: FormData
+            try {
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(testData));
+                
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+                results.push('✅ Method 2 (FormData): 送信完了');
+                successCount++;
+            } catch (error) {
+                results.push('❌ Method 2: ' + error.toString());
+            }
+            
+            // Method 3: URLSearchParams
+            try {
+                const params = new URLSearchParams();
+                params.append('data', JSON.stringify(testData));
+                
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: params
+                });
+                results.push('✅ Method 3 (URLSearchParams): 送信完了');
+                successCount++;
+            } catch (error) {
+                results.push('❌ Method 3: ' + error.toString());
+            }
+            
+            testResults.sending = successCount > 0;
+            
+            resultDiv.innerHTML = `
+                <div class="${successCount > 0 ? 'warning' : 'error'} result-box">
+${results.join('\n')}
+
+送信成功: ${successCount}/3
+⚠️ 注意: no-corsモードではレスポンスを読めないため、実際の保存結果はスプレッドシートで確認する必要があります。
+                </div>
+            `;
+            updateStatus();
+            updateRecommendations();
+        }
+
+        function updateRecommendations() {
+            const recDiv = document.getElementById('recommendations');
+            let recommendations = [];
+            
+            if (testResults.connection === false) {
+                recommendations.push('❌ GAS URLが正しくないか、GASが公開されていません。');
+                recommendations.push('→ GASのデプロイ設定を確認してください。');
+            }
+            
+            if (testResults.cors === false) {
+                recommendations.push('⚠️ CORSエラーが発生しています。');
+                recommendations.push('→ no-corsモードを使用しています（正常な動作）。');
+            }
+            
+            if (testResults.sending === true) {
+                recommendations.push('✅ リクエストは正常に送信されています。');
+                recommendations.push('');
+                recommendations.push('📌 スプレッドシートにデータが記録されない場合:');
+                recommendations.push('1. GASコードのスプレッドシートIDが正しく設定されているか確認');
+                recommendations.push('2. 「回答一覧」シートが存在するか確認');
+                recommendations.push('3. GASの実行ログでエラーを確認');
+                recommendations.push('4. デバッグ版GASコードを使用してログを確認');
+            }
+            
+            recDiv.innerHTML = recommendations.join('\n');
+        }
+    </script>
+</body>
+</html>

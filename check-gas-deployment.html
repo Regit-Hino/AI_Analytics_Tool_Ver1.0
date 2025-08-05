@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GASデプロイ確認ツール</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d93025;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+        .critical-notice {
+            background: #ffebee;
+            border: 3px solid #d93025;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .critical-notice h2 {
+            color: #d93025;
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+        .step-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .step {
+            flex: 1;
+            min-width: 250px;
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #1976d2;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .step h3 {
+            margin-top: 10px;
+            color: #1976d2;
+        }
+        .code-block {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .highlight {
+            background: #ffeb3b;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .result {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        .success {
+            background: #c8e6c9;
+            border: 2px solid #4caf50;
+            color: #2e7d32;
+        }
+        .error {
+            background: #ffcdd2;
+            border: 2px solid #f44336;
+            color: #c62828;
+        }
+        .warning {
+            background: #fff9c4;
+            border: 2px solid #fbc02d;
+            color: #f57f17;
+        }
+        .checklist {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .checklist h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .checklist-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox {
+            width: 20px;
+            height: 20px;
+        }
+        .visual-guide {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .visual-guide img {
+            max-width: 100%;
+            border: 2px solid #4caf50;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 GASデプロイ確認・修正ツール</h1>
+        
+        <div class="critical-notice">
+            <h2>⚠️ 重要：コード更新後は必ず再デプロイが必要です！</h2>
+            <p><strong>スプレッドシートIDを設定しただけでは動作しません。</strong></p>
+            <p>以下の手順で再デプロイを実行してください。</p>
+        </div>
+
+        <div class="checklist">
+            <h3>📋 デプロイ前チェックリスト</h3>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox" id="check1">
+                <label for="check1">GASコードにスプレッドシートIDが設定されている</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox" id="check2">
+                <label for="check2">スプレッドシートに「回答一覧」シートが存在する</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox" id="check3">
+                <label for="check3">GASコードを保存した（Ctrl+S / Cmd+S）</label>
+            </div>
+        </div>
+
+        <h2>🔧 再デプロイ手順</h2>
+        
+        <div class="step-container">
+            <div class="step">
+                <span class="step-number">1</span>
+                <h3>デプロイ管理を開く</h3>
+                <p>GASエディタ右上の「デプロイ」→「デプロイを管理」をクリック</p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <h3>編集アイコンをクリック</h3>
+                <p>既存のデプロイの右側にある鉛筆アイコン（編集）をクリック</p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <h3>新バージョンを選択</h3>
+                <p>バージョン：<span class="highlight">新バージョン</span>を必ず選択</p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <h3>デプロイを実行</h3>
+                <p>「デプロイ」ボタンをクリックして完了</p>
+            </div>
+        </div>
+
+        <div class="visual-guide">
+            <h3>💡 重要なポイント</h3>
+            <ul>
+                <li><strong>バージョン</strong>は必ず「<span class="highlight">新バージョン</span>」を選択</li>
+                <li><strong>実行ユーザー</strong>：自分</li>
+                <li><strong>アクセスできるユーザー</strong>：全員</li>
+                <li>URLは変更されません（既存のURLのまま使用可能）</li>
+            </ul>
+        </div>
+
+        <h2>🧪 デプロイ確認テスト</h2>
+        
+        <button onclick="testGASEndpoint()">1. エンドポイント確認</button>
+        <button onclick="testGASFunction()">2. GAS内部テスト手順を表示</button>
+        <button onclick="sendTestData()">3. テストデータ送信</button>
+        
+        <div id="test-results"></div>
+
+        <div class="checklist" style="margin-top: 30px;">
+            <h3>🔍 それでも動かない場合の確認事項</h3>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox" id="debug1">
+                <label for="debug1">GASの実行ログにエラーが表示されていないか</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox" id="debug2">
+                <label for="debug2">スプレッドシートの共有設定は適切か</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox" id="debug3">
+                <label for="debug3">初回実行時の権限承認は完了したか</label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox" id="debug4">
+                <label for="debug4">testDirectSave()関数を直接実行してエラーが出ないか</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec';
+        
+        function showResult(content, type = 'info') {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = content;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        async function testGASEndpoint() {
+            document.getElementById('test-results').innerHTML = '';
+            try {
+                const response = await fetch(GAS_URL);
+                const data = await response.text();
+                showResult(`✅ エンドポイント接続成功\nStatus: ${response.status}\nResponse: ${data}`, 'success');
+            } catch (error) {
+                showResult(`❌ エンドポイント接続失敗\nError: ${error.toString()}`, 'error');
+            }
+        }
+        
+        function testGASFunction() {
+            document.getElementById('test-results').innerHTML = '';
+            const code = `// GASエディタで以下の関数を実行してください：
+
+function testDirectSave() {
+  try {
+    const spreadsheetId = '1-vBChfdpYN1-Sb92jVX5n1FA8eTFH_ztZgQyZCsTwN4';
+    const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName('回答一覧');
+    
+    const testData = [
+      new Date().toISOString(),
+      "デプロイ確認テスト",
+      "IT",
+      "1-100",
+      "テスト太郎",
+      "deploy-test@example.com",
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      50,
+      "★"
+    ];
+    
+    sheet.appendRow(testData);
+    console.log('✅ 成功！スプレッドシートを確認してください');
+    return '成功';
+  } catch (error) {
+    console.error('❌ エラー:', error.toString());
+    return 'エラー: ' + error.toString();
+  }
+}`;
+            
+            showResult(`<strong>GASエディタで実行する手順：</strong>
+1. 以下のコードをコピー
+2. GASエディタに貼り付け
+3. 関数選択で「testDirectSave」を選択
+4. 実行ボタンをクリック
+5. 実行ログでエラーを確認
+
+<pre style="background: #263238; color: #aed581; padding: 15px; border-radius: 6px; overflow-x: auto;">${code}</pre>`, 'warning');
+        }
+        
+        async function sendTestData() {
+            document.getElementById('test-results').innerHTML = '';
+            const testData = {
+                timestamp: new Date().toISOString(),
+                company: "デプロイ確認株式会社",
+                industry: "IT",
+                headcount: "101-500",
+                name: "デプロイ確認 太郎",
+                email: "deploy-check@example.com",
+                answers: {
+                    "q1": 2, "q2": 1, "q3": 0, "q4": 1, "q5": 2,
+                    "q6": 1, "q7": 0, "q8": 1, "q9": 2, "q10": 0,
+                    "q11": 1, "q12": 1, "q13": 2, "q14": 1, "q15": 2
+                },
+                total_score: 78,
+                tier: "★★"
+            };
+            
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(testData),
+                });
+                
+                showResult(`✅ テストデータを送信しました！
+                
+送信データ:
+- 会社名: デプロイ確認株式会社
+- 名前: デプロイ確認 太郎
+- 時刻: ${testData.timestamp}
+
+⚠️ 重要: スプレッドシートの「回答一覧」シートを確認してください。
+データが記録されていない場合は、再デプロイが必要です。`, 'success');
+            } catch (error) {
+                showResult(`❌ 送信エラー: ${error.toString()}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

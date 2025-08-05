@@ -1,0 +1,177 @@
+// ========== デバッグ版GASコード ==========
+
+// POSTリクエストを処理する関数
+function doPost(e) {
+  // デバッグ用：すべてのリクエスト情報をログに記録
+  console.log('=== doPost開始 ===');
+  console.log('リクエスト全体:', JSON.stringify(e));
+  
+  try {
+    let data;
+    
+    // リクエストボディをパース（複数の形式に対応）
+    if (e.postData && e.postData.contents) {
+      console.log('postData.contents detected:', e.postData.contents);
+      // 通常のJSONボディ
+      try {
+        data = JSON.parse(e.postData.contents);
+        console.log('JSONパース成功:', JSON.stringify(data));
+      } catch (parseError) {
+        console.log('JSONパースエラー:', parseError.toString());
+        // パースエラーの場合、文字列として扱う
+        data = { raw: e.postData.contents };
+      }
+    } else if (e.parameter && e.parameter.data) {
+      console.log('parameter.data detected:', e.parameter.data);
+      // FormDataまたはURLパラメータとして送信された場合
+      data = JSON.parse(e.parameter.data);
+    } else if (e.parameter) {
+      console.log('parameters detected:', JSON.stringify(e.parameter));
+      // その他の形式（パラメータを直接確認）
+      data = e.parameter;
+    } else {
+      console.log('No data detected in request');
+      data = {};
+    }
+    
+    console.log('処理するデータ:', JSON.stringify(data));
+    
+    // スプレッドシートを開く
+    const spreadsheetId = 'ここにスプレッドシートIDを入力'; // ← 変更する場所
+    
+    // スプレッドシートIDが設定されているか確認
+    if (spreadsheetId === 'ここにスプレッドシートIDを入力') {
+      throw new Error('スプレッドシートIDが設定されていません！');
+    }
+    
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    console.log('スプレッドシート取得成功');
+    
+    const sheet = spreadsheet.getSheetByName('回答一覧');
+    if (!sheet) {
+      throw new Error('「回答一覧」シートが見つかりません');
+    }
+    console.log('シート取得成功');
+    
+    // データを配列に変換
+    const row = [
+      data.timestamp || new Date().toISOString(),
+      data.company || '',
+      data.industry || '',
+      data.headcount || '',
+      data.name || '',
+      data.email || '',
+      data.answers?.q1 || data.answers?.[1] || '',
+      data.answers?.q2 || data.answers?.[2] || '',
+      data.answers?.q3 || data.answers?.[3] || '',
+      data.answers?.q4 || data.answers?.[4] || '',
+      data.answers?.q5 || data.answers?.[5] || '',
+      data.answers?.q6 || data.answers?.[6] || '',
+      data.answers?.q7 || data.answers?.[7] || '',
+      data.answers?.q8 || data.answers?.[8] || '',
+      data.answers?.q9 || data.answers?.[9] || '',
+      data.answers?.q10 || data.answers?.[10] || '',
+      data.answers?.q11 || data.answers?.[11] || '',
+      data.answers?.q12 || data.answers?.[12] || '',
+      data.answers?.q13 || data.answers?.[13] || '',
+      data.answers?.q14 || data.answers?.[14] || '',
+      data.answers?.q15 || data.answers?.[15] || '',
+      data.total_score || 0,
+      data.tier || ''
+    ];
+    
+    console.log('追加する行データ:', JSON.stringify(row));
+    
+    // 最終行に追加
+    sheet.appendRow(row);
+    console.log('行の追加成功');
+    
+    // 成功レスポンス
+    const response = {
+      status: 'success',
+      message: 'データを正常に保存しました',
+      debug: {
+        receivedData: data,
+        savedRow: row
+      }
+    };
+    
+    console.log('レスポンス:', JSON.stringify(response));
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    console.error('エラー発生:', error.toString());
+    console.error('スタックトレース:', error.stack);
+    
+    // エラーレスポンス
+    const errorResponse = {
+      status: 'error',
+      message: error.toString(),
+      stack: error.stack
+    };
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(errorResponse))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// GETリクエストを処理する関数（テスト用）
+function doGet(e) {
+  console.log('=== doGet開始 ===');
+  console.log('リクエストパラメータ:', JSON.stringify(e));
+  
+  return ContentService
+    .createTextOutput(JSON.stringify({
+      status: 'ok',
+      message: 'Working!',
+      timestamp: new Date().toISOString()
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// テスト関数（GASエディタから直接実行可能）
+function testDirectSave() {
+  const testData = {
+    timestamp: new Date().toISOString(),
+    company: "直接テスト株式会社",
+    industry: "IT",
+    headcount: "101-500",
+    name: "直接テスト 太郎",
+    email: "direct-test@example.com",
+    answers: {
+      "q1": 2,
+      "q2": 1,
+      "q3": 0,
+      "q4": 1,
+      "q5": 2,
+      "q6": 1,
+      "q7": 0,
+      "q8": 1,
+      "q9": 2,
+      "q10": 0,
+      "q11": 1,
+      "q12": 1,
+      "q13": 2,
+      "q14": 1,
+      "q15": 2
+    },
+    total_score: 78,
+    tier: "★★"
+  };
+  
+  // 仮想的なPOSTリクエストを作成
+  const mockRequest = {
+    postData: {
+      contents: JSON.stringify(testData)
+    }
+  };
+  
+  const result = doPost(mockRequest);
+  console.log('テスト結果:', result.getContent());
+}
+
+// ========== ここまで ==========
