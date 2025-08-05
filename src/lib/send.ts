@@ -87,7 +87,8 @@ export function prepareDiagnosisData(
   answers: Record<number, number | string>,
   totalScore: number,
   tier: string,
-  remarks: string
+  remarks: string,
+  answerTexts?: Record<number, string>
 ): DiagnosisData {
   // Get current date in JST
   const now = new Date();
@@ -104,6 +105,19 @@ export function prepareDiagnosisData(
   
   const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   
+  // Format answers with text
+  const formattedAnswers: Record<number, number | string> = {};
+  Object.entries(answers).forEach(([key, value]) => {
+    const questionId = parseInt(key);
+    if (answerTexts && answerTexts[questionId] && typeof value === 'number') {
+      // 選択肢の場合は「テキスト（点数）」形式で送信
+      formattedAnswers[questionId] = `${answerTexts[questionId]}（${value}点）`;
+    } else {
+      // テキスト入力の場合はそのまま
+      formattedAnswers[questionId] = value;
+    }
+  });
+  
   return {
     timestamp,
     company,
@@ -111,7 +125,7 @@ export function prepareDiagnosisData(
     headcount,
     name,
     email,
-    answers,
+    answers: formattedAnswers,
     total_score: totalScore,
     tier,
     remarks
@@ -119,24 +133,6 @@ export function prepareDiagnosisData(
 }
 
 export function createTestData(): DiagnosisData {
-  const mockAnswers: Record<string, number> = {
-    "q1": 2,
-    "q2": 1,
-    "q3": 0,
-    "q4": 1,
-    "q5": 2,
-    "q6": 1,
-    "q7": 0,
-    "q8": 1,
-    "q9": 2,
-    "q10": 0,
-    "q11": 1,
-    "q12": 1,
-    "q13": 2,
-    "q14": 1,
-    "q15": 2
-  };
-
   // Get current date in JST
   const now = new Date();
   const jstOffset = 9 * 60; // JST is UTC+9
@@ -152,6 +148,25 @@ export function createTestData(): DiagnosisData {
   
   const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
+  // テスト用の回答（テキスト付き）
+  const formattedAnswers: Record<string, string> = {
+    "1": "興味はあるが、まだ考えていない（3点）",
+    "2": "計画段階（1点）",
+    "3": "未設置（0点）",
+    "4": "計画中（3点）",
+    "5": "興味もあるが、不安の声もある（3点）",
+    "6": "収集開始（3点）",
+    "7": "担当者やルールは特にない（0点）",
+    "8": "Excelでまとめているが活用できていない（3点）",
+    "9": "専門家に依頼したいが、誰に頼めばよいかわからない（3点）",
+    "10": "予算化されていない（0点）",
+    "11": "数ヶ月以内（7点）",
+    "12": "生産性向上（6点）",
+    "13": "非常に期待している（7点）",
+    "14": "初期投資の大きさ（7点）",
+    "15": "効果の測定方法がわからない（6点）"
+  };
+
   return {
     timestamp,
     company: "テスト株式会社",
@@ -159,7 +174,7 @@ export function createTestData(): DiagnosisData {
     headcount: "101-500",
     name: "テスト 太郎",
     email: "test@example.com",
-    answers: mockAnswers,
+    answers: formattedAnswers,
     total_score: 78,
     tier: "★★",
     remarks: "テスト用のヒアリングメモです。"

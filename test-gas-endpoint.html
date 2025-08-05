@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>GASエンドポイント接続テスト</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px solid #2196F3;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .log {
+            background: #263238;
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #ff5252;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .endpoint-info {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 GASエンドポイント接続テスト</h1>
+    
+    <div class="warning">
+        <strong>重要:</strong> このページで各テストを実行して、どの段階で問題が発生しているか特定します。
+    </div>
+
+    <div class="test">
+        <h2>1. GETリクエストテスト（基本接続確認）</h2>
+        <p>まず、GASエンドポイントが正しく動作しているか確認します。</p>
+        <div class="endpoint-info">
+            エンドポイント: https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec
+        </div>
+        <button onclick="testGET()">GETテスト実行</button>
+        <div id="getLog" class="log"></div>
+    </div>
+
+    <div class="test">
+        <h2>2. 最小POSTテスト</h2>
+        <p>最小限のデータでPOSTリクエストをテストします。</p>
+        <button onclick="testMinimalPOST()">最小POSTテスト</button>
+        <div id="postLog" class="log"></div>
+    </div>
+
+    <div class="test">
+        <h2>3. 完全なデータ送信テスト</h2>
+        <p>実際のアプリと同じ形式でデータを送信します。</p>
+        <button onclick="testFullData()">フルデータテスト</button>
+        <div id="fullLog" class="log"></div>
+    </div>
+
+    <div class="test">
+        <h2>4. 現在のGAS URLを確認</h2>
+        <p>.envファイルのVITE_SAVE_ENDPOINTが正しいか確認してください：</p>
+        <div class="endpoint-info">
+            正しいURL: https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec
+        </div>
+        <p>アプリが使用しているURL:</p>
+        <div class="endpoint-info" id="appEndpoint">確認中...</div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec';
+        
+        function log(elementId, message, type = '') {
+            const logDiv = document.getElementById(elementId);
+            const time = new Date().toLocaleTimeString('ja-JP');
+            const className = type ? ` class="${type}"` : '';
+            logDiv.innerHTML += `<span${className}>[${time}] ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        async function testGET() {
+            log('getLog', '=== GETリクエスト開始 ===');
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                log('getLog', 'ステータス: ' + response.status);
+                const text = await response.text();
+                log('getLog', 'レスポンス: ' + text, 'success');
+                
+                if (response.status === 200 && text.includes('Working')) {
+                    log('getLog', '✅ GASエンドポイントは正常に動作しています！', 'success');
+                } else {
+                    log('getLog', '⚠️ 予期しないレスポンスです', 'error');
+                }
+            } catch (error) {
+                log('getLog', '❌ エラー: ' + error.message, 'error');
+                log('getLog', 'CORSエラーの可能性があります', 'error');
+            }
+        }
+        
+        async function testMinimalPOST() {
+            log('postLog', '=== 最小POSTテスト開始 ===');
+            const minData = {
+                company: "最小テスト",
+                timestamp: new Date().toISOString()
+            };
+            
+            log('postLog', '送信データ: ' + JSON.stringify(minData));
+            
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify(minData)
+                });
+                
+                log('postLog', '✅ リクエスト送信完了（no-corsモード）', 'success');
+                log('postLog', 'スプレッドシートで「最小テスト」を確認してください', 'success');
+            } catch (error) {
+                log('postLog', '❌ エラー: ' + error.message, 'error');
+            }
+        }
+        
+        async function testFullData() {
+            log('fullLog', '=== フルデータテスト開始 ===');
+            
+            const fullData = {
+                timestamp: new Date().toISOString(),
+                company: "フルテスト会社",
+                industry: "IT",
+                headcount: "51-100",
+                name: "フルテスト太郎",
+                email: "full-test@example.com",
+                answers: {
+                    1: 5, 2: 5, 3: 5, 4: 5, 5: 5,
+                    6: 5, 7: 5, 8: 5, 9: 5, 10: 5,
+                    11: 5, 12: 5, 13: 5, 14: 5, 15: 5
+                },
+                total_score: 100,
+                tier: "★★★",
+                remarks: "フルデータテストのremarks。この文字がX列に入るはずです。"
+            };
+            
+            log('fullLog', '送信データ:');
+            log('fullLog', JSON.stringify(fullData, null, 2));
+            
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify(fullData)
+                });
+                
+                log('fullLog', '✅ リクエスト送信完了', 'success');
+                log('fullLog', 'スプレッドシートで以下を確認してください：', 'success');
+                log('fullLog', '- 会社名「フルテスト会社」の行', 'success');
+                log('fullLog', '- X列にremarksが記録されているか', 'success');
+            } catch (error) {
+                log('fullLog', '❌ エラー: ' + error.message, 'error');
+            }
+        }
+        
+        // アプリが使用しているエンドポイントを表示
+        window.onload = () => {
+            const appEndpoint = document.getElementById('appEndpoint');
+            // 本番環境のエンドポイントURLを表示
+            appEndpoint.textContent = '確認するには、アプリの開発者ツールでコンソールログを見てください';
+        };
+    </script>
+</body>
+</html>

@@ -86,6 +86,17 @@ const Results: React.FC<ResultsProps> = ({ score, tier, answers, remarks, onRest
       const email = answers[-1] as string || '';
       const industry = getIndustry(answers);
       
+      // 選択肢のテキストを取得
+      const answerTexts: Record<number, string> = {};
+      questions.forEach(q => {
+        if (q.options && answers[q.id] !== undefined) {
+          const selectedOption = q.options.find(opt => opt.value === answers[q.id]);
+          if (selectedOption) {
+            answerTexts[q.id] = selectedOption.label;
+          }
+        }
+      });
+      
       const diagnosisData = prepareDiagnosisData(
         company,
         industry,
@@ -95,7 +106,8 @@ const Results: React.FC<ResultsProps> = ({ score, tier, answers, remarks, onRest
         answers,
         score,
         tier,
-        remarks
+        remarks,
+        answerTexts
       );
       
       console.log('=== REMARKS DEBUG ===');

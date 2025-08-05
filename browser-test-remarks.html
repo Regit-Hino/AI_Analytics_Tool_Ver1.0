@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Remarks Browser Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            background: #f0f8ff;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .log {
+            background: #333;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .highlight {
+            background: #ffeb3b;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Remarks送信テスト（ブラウザ版）</h1>
+    
+    <div class="test-section">
+        <h2>テスト内容</h2>
+        <p>以下のテストデータを送信します：</p>
+        <ul>
+            <li>会社名: <strong>ブラウザテスト株式会社</strong></li>
+            <li>名前: <strong>ブラウザ太郎</strong></li>
+            <li>ヒアリングメモ: <strong>ブラウザからの送信テスト。remarksがX列に正しく記録されるか確認。</strong></li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <button onclick="sendTest()">🚀 テスト送信</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <div class="highlight">
+        ⚠️ 送信後、スプレッドシートで以下を確認してください：
+        <ol>
+            <li>「ブラウザテスト株式会社」の行が追加されている</li>
+            <li>X列（24列目）に「ブラウザからの送信テスト...」が記録されている</li>
+        </ol>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/a/macros/regit-technology.com/s/AKfycbwmcnuNAdT7leScIb3JnYPkH2Pye6vN0PruZZZ_3szelb1MczLg0hLmjAxN_Qf5GvBl/exec';
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString('ja-JP');
+            logDiv.textContent += `[${time}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function getJSTTimestamp() {
+            const now = new Date();
+            const jstOffset = 9 * 60;
+            const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+            
+            const year = jstTime.getUTCFullYear();
+            const month = String(jstTime.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(jstTime.getUTCDate()).padStart(2, '0');
+            const hours = String(jstTime.getUTCHours()).padStart(2, '0');
+            const minutes = String(jstTime.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(jstTime.getUTCSeconds()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        async function sendTest() {
+            log('=== テスト開始 ===');
+            
+            const testData = {
+                timestamp: getJSTTimestamp(),
+                company: "ブラウザテスト株式会社",
+                industry: "IT",
+                headcount: "51-100",
+                name: "ブラウザ太郎",
+                email: "browser-test@example.com",
+                answers: {
+                    1: 3,
+                    2: 3,
+                    3: 3,
+                    4: 3,
+                    5: 3,
+                    6: 3,
+                    7: 3,
+                    8: 3,
+                    9: 3,
+                    10: 3,
+                    11: 3,
+                    12: 3,
+                    13: 3,
+                    14: 3,
+                    15: 3
+                },
+                total_score: 90,
+                tier: "★★★",
+                remarks: "ブラウザからの送信テスト。remarksがX列に正しく記録されるか確認。"
+            };
+            
+            log('送信データ:');
+            log(JSON.stringify(testData, null, 2));
+            log('\nremarks値: "' + testData.remarks + '"');
+            log('remarks長さ: ' + testData.remarks.length + '文字');
+            
+            try {
+                log('\n送信中...');
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(testData),
+                });
+                
+                log('✅ 送信完了！');
+                log('（no-corsモードのため、レスポンスは確認できません）');
+                log('\n📊 スプレッドシートを確認してください！');
+                
+            } catch (error) {
+                log('❌ エラー: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
