@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>選択肢テキスト送信テスト</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .log {
+            background: #263238;
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 10px 0;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .important {
+            background: #ffeb3b;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <h1>📝 選択肢テキスト送信テスト</h1>
+    
+    <div class="important">
+        ⚠️ このテストで、選択肢のテキストが正しく送信されているか確認します。
+    </div>
+
+    <div class="test-section">
+        <h2>送信するテストデータ</h2>
+        <table>
+            <tr>
+                <th>質問番号</th>
+                <th>送信される内容</th>
+            </tr>
+            <tr>
+                <td>質問1</td>
+                <td>興味はあるが、まだ考えていない（3点）</td>
+            </tr>
+            <tr>
+                <td>質問6</td>
+                <td>収集開始（3点）</td>
+            </tr>
+            <tr>
+                <td>質問11</td>
+                <td>数ヶ月以内（7点）</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <button onclick="sendTest()">🚀 テスト送信</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbziuZzkU3S0c_DZKmVrfIRV9YR4U_8EDQR6Ggkq8qcX792IeEcC9Hiyq2OdoK53cc3rPw/exec';
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString('ja-JP');
+            logDiv.textContent += `[${time}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function getJSTTimestamp() {
+            const now = new Date();
+            const jstOffset = 9 * 60;
+            const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+            
+            const year = jstTime.getUTCFullYear();
+            const month = String(jstTime.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(jstTime.getUTCDate()).padStart(2, '0');
+            const hours = String(jstTime.getUTCHours()).padStart(2, '0');
+            const minutes = String(jstTime.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(jstTime.getUTCSeconds()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        async function sendTest() {
+            log('=== 選択肢テキスト送信テスト開始 ===');
+            
+            const testData = {
+                timestamp: getJSTTimestamp(),
+                company: "選択肢テキストテスト会社",
+                industry: "IT",
+                headcount: "51-100",
+                name: "テキスト太郎",
+                email: "text-test@example.com",
+                answers: {
+                    "1": "興味はあるが、まだ考えていない（3点）",
+                    "2": "計画段階（1点）",
+                    "3": "未設置（0点）",
+                    "4": "計画中（3点）",
+                    "5": "興味もあるが、不安の声もある（3点）",
+                    "6": "収集開始（3点）",
+                    "7": "担当者やルールは特にない（0点）",
+                    "8": "Excelでまとめているが活用できていない（3点）",
+                    "9": "専門家に依頼したいが、誰に頼めばよいかわからない（3点）",
+                    "10": "予算化されていない（0点）",
+                    "11": "数ヶ月以内（7点）",
+                    "12": "生産性向上（6点）",
+                    "13": "非常に期待している（7点）",
+                    "14": "初期投資の大きさ（7点）",
+                    "15": "効果の測定方法がわからない（6点）"
+                },
+                total_score: 58,
+                tier: "★★",
+                remarks: "選択肢テキストが正しく送信されているかのテスト"
+            };
+            
+            log('送信データ:');
+            log(JSON.stringify(testData, null, 2));
+            log('\n重要: answersフィールドに選択肢のテキストと点数が含まれています！');
+            
+            try {
+                log('\n送信中...');
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(testData),
+                });
+                
+                log('✅ 送信完了！');
+                log('\n📊 スプレッドシートを確認してください：');
+                log('- 会社名「選択肢テキストテスト会社」の行');
+                log('- G列〜U列に「選択肢テキスト（点数）」形式で表示されているか');
+                log('- 例: G列に「興味はあるが、まだ考えていない（3点）」');
+                
+            } catch (error) {
+                log('❌ エラー: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

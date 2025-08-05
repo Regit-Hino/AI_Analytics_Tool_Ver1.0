@@ -106,15 +106,16 @@ export function prepareDiagnosisData(
   const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   
   // Format answers with text
-  const formattedAnswers: Record<number, number | string> = {};
+  const formattedAnswers: Record<string | number, string | number> = {};
   Object.entries(answers).forEach(([key, value]) => {
     const questionId = parseInt(key);
-    if (answerTexts && answerTexts[questionId] && typeof value === 'number') {
+    // 数値のキー（質問1-15）かつanswerTextsに該当するテキストがある場合
+    if (!isNaN(questionId) && questionId > 0 && answerTexts && answerTexts[questionId] && typeof value === 'number') {
       // 選択肢の場合は「テキスト（点数）」形式で送信
-      formattedAnswers[questionId] = `${answerTexts[questionId]}（${value}点）`;
+      formattedAnswers[key] = `${answerTexts[questionId]}（${value}点）`;
     } else {
-      // テキスト入力の場合はそのまま
-      formattedAnswers[questionId] = value;
+      // テキスト入力の場合や会社情報はそのまま
+      formattedAnswers[key] = value;
     }
   });
   

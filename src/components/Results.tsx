@@ -110,10 +110,12 @@ const Results: React.FC<ResultsProps> = ({ score, tier, answers, remarks, onRest
         answerTexts
       );
       
-      console.log('=== REMARKS DEBUG ===');
+      console.log('=== DIAGNOSIS DATA DEBUG ===');
       console.log('remarks value:', remarks);
       console.log('remarks length:', remarks ? remarks.length : 0);
+      console.log('answerTexts:', answerTexts);
       console.log('Full diagnosis data:', diagnosisData);
+      console.log('Formatted answers in diagnosis data:', diagnosisData.answers);
       
       sendDiagnosisData(diagnosisData).then(success => {
         if (success) {
@@ -126,6 +128,17 @@ const Results: React.FC<ResultsProps> = ({ score, tier, answers, remarks, onRest
 
 
   const downloadCSV = () => {
+    // CSV用のエスケープ関数
+    const escapeCSV = (value: any): string => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      // カンマ、改行、ダブルクォートが含まれる場合はダブルクォートで囲む
+      if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+    
     const headers = ['質問ID', 'カテゴリ', '質問', '回答'];
     const industry = getIndustry(answers);
     const rows = questions.map(q => {
@@ -135,20 +148,33 @@ const Results: React.FC<ResultsProps> = ({ score, tier, answers, remarks, onRest
         : q.options?.find(opt => opt.value === answer)?.label || answer;
       return [
         q.id,
-        q.category,
-        q.question,
-        answerText
+        escapeCSV(q.category),
+        escapeCSV(q.question),
+        escapeCSV(answerText)
       ];
     });
     
-    const csvContent = [
+    // CSVに含める内容を構築
+    const csvRows = [
       headers.join(','),
       ...rows.map(row => row.join(',')),
       '',
-      `業種,${industry}`,
+      `業種,${escapeCSV(industry)}`,
       `総合スコア,${score}`,
       `評価,${tier}`
-    ].join('\n');
+    ];
+    
+    // 総評コメントを追加
+    if (recommendation && recommendation.comment) {
+      csvRows.push(`総評,${escapeCSV(recommendation.comment)}`);
+    }
+    
+    // ヒアリングメモを追加
+    if (remarks) {
+      csvRows.push(`ヒアリングメモ,${escapeCSV(remarks)}`);
+    }
+    
+    const csvContent = csvRows.join('\n');
     
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
