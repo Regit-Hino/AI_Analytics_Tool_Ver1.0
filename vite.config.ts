@@ -10,5 +10,5 @@ export default defineConfig({
     host: true,
     open: true
   },
-  base: process.env.NODE_ENV === 'production' ? '/ai-check/' : '/'
+  base: process.env.NODE_ENV === 'production' ? '/AI_Analytics_Tool_Ver1.0/' : '/'
 })
