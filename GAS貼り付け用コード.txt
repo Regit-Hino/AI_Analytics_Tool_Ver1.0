@@ -23,7 +23,7 @@ function doPost(e) {
     
     // データを配列に変換
     const row = [
-      data.timestamp || new Date().toISOString(),
+      data.timestamp || Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'),
       data.company || '',
       data.industry || '',
       data.headcount || '',

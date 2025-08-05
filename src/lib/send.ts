@@ -89,8 +89,23 @@ export function prepareDiagnosisData(
   tier: string,
   remarks: string
 ): DiagnosisData {
+  // Get current date in JST
+  const now = new Date();
+  const jstOffset = 9 * 60; // JST is UTC+9
+  const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+  
+  // Format as YYYY-MM-DD HH:mm:ss
+  const year = jstTime.getUTCFullYear();
+  const month = String(jstTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(jstTime.getUTCDate()).padStart(2, '0');
+  const hours = String(jstTime.getUTCHours()).padStart(2, '0');
+  const minutes = String(jstTime.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(jstTime.getUTCSeconds()).padStart(2, '0');
+  
+  const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  
   return {
-    timestamp: new Date().toISOString(),
+    timestamp,
     company,
     industry,
     headcount,
@@ -122,8 +137,23 @@ export function createTestData(): DiagnosisData {
     "q15": 2
   };
 
+  // Get current date in JST
+  const now = new Date();
+  const jstOffset = 9 * 60; // JST is UTC+9
+  const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+  
+  // Format as YYYY-MM-DD HH:mm:ss
+  const year = jstTime.getUTCFullYear();
+  const month = String(jstTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(jstTime.getUTCDate()).padStart(2, '0');
+  const hours = String(jstTime.getUTCHours()).padStart(2, '0');
+  const minutes = String(jstTime.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(jstTime.getUTCSeconds()).padStart(2, '0');
+  
+  const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
   return {
-    timestamp: new Date().toISOString(),
+    timestamp,
     company: "テスト株式会社",
     industry: "IT",
     headcount: "101-500",
