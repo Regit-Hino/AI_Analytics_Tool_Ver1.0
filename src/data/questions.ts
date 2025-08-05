@@ -79,12 +79,12 @@ export const questions: Question[] = [
   {
     id: 2,
     category: "戦略・ビジョン",
-    question: "経営層はAI導入に対してどの程度コミットしていますか？",
+    question: "経営層はAI導入にどの程度関心がありますか？",
     options: [
       { value: 0, label: "関心なし" },
       { value: 3, label: "関心あり" },
       { value: 5, label: "積極的に支援" },
-      { value: 7, label: "強力にリード" }
+      { value: 7, label: "経営層自身が積極的に活用している" }
     ]
   },
   {
