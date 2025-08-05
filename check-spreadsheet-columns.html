@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スプレッドシート列構造確認ツール</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #666;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            color: #888;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .info {
+            background: #e8f4fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .column-letter {
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .expected {
+            color: #4caf50;
+        }
+        .actual {
+            color: #f44336;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .highlight {
+            background-color: #ffe082;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>スプレッドシート列構造確認ツール</h1>
+        
+        <div class="info">
+            <strong>このツールの目的：</strong>
+            スプレッドシートの列構造を確認し、remarksが正しい位置（AC列）に表示されない問題を解決します。
+        </div>
+
+        <h2>現在の問題</h2>
+        <div class="error">
+            <strong>症状：</strong>
+            <ul>
+                <li>備考（remarks）が <span class="highlight">AC列（29列目）</span> ではなく <span class="highlight">AB列（28列目）</span> に表示される</li>
+                <li>他の項目（会社名、業種、得点など）は正しく表示されている</li>
+            </ul>
+        </div>
+
+        <h2>期待される列構造</h2>
+        <p>GASコードは以下の順番で29列のデータを送信しています：</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>列</th>
+                    <th>列番号</th>
+                    <th>内容</th>
+                    <th>備考</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="column-letter">A</td>
+                    <td>1</td>
+                    <td>タイムスタンプ</td>
+                    <td>送信日時</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">B</td>
+                    <td>2</td>
+                    <td>会社名</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">C</td>
+                    <td>3</td>
+                    <td>業種</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">D</td>
+                    <td>4</td>
+                    <td>従業員数</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">E</td>
+                    <td>5</td>
+                    <td>氏名</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">F</td>
+                    <td>6</td>
+                    <td>メールアドレス</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">G-U</td>
+                    <td>7-21</td>
+                    <td>質問1-15の回答</td>
+                    <td>15個の質問</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">V-Z</td>
+                    <td>22-26</td>
+                    <td>質問16-20</td>
+                    <td class="warning">空欄（将来の拡張用）</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">AA</td>
+                    <td>27</td>
+                    <td>総合得点</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="column-letter">AB</td>
+                    <td>28</td>
+                    <td>評価</td>
+                    <td>★の数</td>
+                </tr>
+                <tr>
+                    <td class="column-letter expected">AC</td>
+                    <td>29</td>
+                    <td class="expected">備考（remarks）</td>
+                    <td class="expected">ここに表示されるべき</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>確認手順</h2>
+        
+        <h3>ステップ1: スプレッドシートの現在の状態を確認</h3>
+        <ol>
+            <li>Google スプレッドシートを開く</li>
+            <li>「回答一覧」シートを選択</li>
+            <li>1行目（ヘッダー行）を確認</li>
+            <li>以下の点をチェック：
+                <ul>
+                    <li>列の総数は何列ありますか？（AC列まで存在しますか？）</li>
+                    <li>V-Z列（質問16-20）は存在しますか？</li>
+                    <li>AB列には何が表示されていますか？（評価？備考？）</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>ステップ2: 問題の原因を特定</h3>
+        
+        <div class="warning">
+            <strong>可能性1: スプレッドシートの列が28列しかない</strong>
+            <ul>
+                <li>AC列が存在しない場合、remarksがAB列に表示される</li>
+                <li>この場合、AC列を追加する必要があります</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <strong>可能性2: 質問16-20の列が削除されている</strong>
+            <ul>
+                <li>V-Z列が存在しない場合、列番号がずれる</li>
+                <li>この場合、V-Z列を追加するか、GASコードを修正する必要があります</li>
+            </ul>
+        </div>
+
+        <h2>解決方法</h2>
+        
+        <h3>方法1: スプレッドシートを修正（推奨）</h3>
+        <div class="success">
+            <strong>手順：</strong>
+            <ol>
+                <li>スプレッドシートのヘッダー行を確認</li>
+                <li>不足している列を追加：
+                    <ul>
+                        <li>V-Z列に「質問16」〜「質問20」のヘッダーを追加（データは空欄でOK）</li>
+                        <li>AC列に「備考」ヘッダーを追加</li>
+                    </ul>
+                </li>
+                <li>列の順番が上記の表と一致することを確認</li>
+            </ol>
+        </div>
+
+        <h3>方法2: GASコードを修正（代替案）</h3>
+        <p>質問16-20が不要な場合は、GASコードから削除できます：</p>
+        
+        <div class="code-block">
+// 修正前（29列）
+const row = [
+  data.timestamp || Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'),
+  data.company || '',
+  data.industry || '',
+  data.headcount || '',
+  data.name || '',
+  data.email || '',
+  data.answers?.q1 || data.answers?.[1] || '',
+  // ... 質問2-15 ...
+  '', // 質問16
+  '', // 質問17
+  '', // 質問18
+  '', // 質問19
+  '', // 質問20
+  data.total_score || 0,
+  data.tier || '',
+  data.remarks || ''
+];
+
+// 修正後（24列）
+const row = [
+  data.timestamp || Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'),
+  data.company || '',
+  data.industry || '',
+  data.headcount || '',
+  data.name || '',
+  data.email || '',
+  data.answers?.q1 || data.answers?.[1] || '',
+  // ... 質問2-15 ...
+  // 質問16-20を削除
+  data.total_score || 0,
+  data.tier || '',
+  data.remarks || ''
+];
+        </div>
+
+        <div class="info">
+            <strong>注意：</strong>
+            <ul>
+                <li>方法1（スプレッドシートの修正）を推奨します</li>
+                <li>既存のデータがある場合は、変更前にバックアップを作成してください</li>
+                <li>変更後は必ずテストデータを送信して確認してください</li>
+            </ul>
+        </div>
+
+        <h2>確認用チェックリスト</h2>
+        <div class="container" style="background: #f8f9fa;">
+            <h3>現在の状態を記録してください：</h3>
+            <ul style="list-style-type: none;">
+                <li>□ スプレッドシートの列数： ＿＿＿列</li>
+                <li>□ AC列は存在する： はい / いいえ</li>
+                <li>□ V-Z列（質問16-20）は存在する： はい / いいえ</li>
+                <li>□ AB列のヘッダー： ＿＿＿＿＿＿＿＿</li>
+                <li>□ 最後の列： ＿＿列（ヘッダー：＿＿＿＿＿＿）</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

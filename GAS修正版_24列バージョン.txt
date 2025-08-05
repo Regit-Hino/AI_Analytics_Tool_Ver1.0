@@ -1,27 +1,37 @@
-// ========== ここから下をすべてコピーしてGoogle Apps Scriptに貼り付けてください ==========
+// ========== 24列バージョン（質問16-20を削除）==========
+// スプレッドシートに質問16-20の列がない場合はこちらを使用してください
 
 // POSTリクエストを処理する関数
 function doPost(e) {
   try {
     let data;
     
+    // デバッグ用ログ
+    console.log('Raw request:', JSON.stringify(e));
+    
     // リクエストボディをパース（複数の形式に対応）
     if (e.postData && e.postData.contents) {
       // 通常のJSONボディ
       data = JSON.parse(e.postData.contents);
+      console.log('Parsed from JSON body:', JSON.stringify(data));
     } else if (e.parameter && e.parameter.data) {
       // FormDataまたはURLパラメータとして送信された場合
       data = JSON.parse(e.parameter.data);
+      console.log('Parsed from parameter data:', JSON.stringify(data));
     } else {
       // その他の形式（パラメータを直接確認）
       data = e.parameter || {};
+      console.log('Using direct parameters:', JSON.stringify(data));
     }
+    
+    // remarksフィールドの確認
+    console.log('Remarks field:', data.remarks);
     
     // スプレッドシートを開く
     const spreadsheetId = '1-vBChfdpYN1-Sb92jVX5n1FA8eTFH_ztZgQyZCsTwN4'; // ✅ ID設定済み
     const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName('回答一覧');
     
-    // データを配列に変換
+    // データを配列に変換（質問16-20を削除したバージョン）
     const row = [
       data.timestamp || Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'),
       data.company || '',
@@ -44,21 +54,31 @@ function doPost(e) {
       data.answers?.q13 || data.answers?.[13] || '',
       data.answers?.q14 || data.answers?.[14] || '',
       data.answers?.q15 || data.answers?.[15] || '',
+      // 質問16-20を削除
       data.total_score || 0,
       data.tier || '',
       data.remarks || ''
     ];
+    
+    console.log('Row to append (24 columns):', JSON.stringify(row));
+    console.log('Total columns:', row.length);
+    console.log('Remarks value (column 24):', row[23]);
     
     // 最終行に追加
     sheet.appendRow(row);
     
     // 成功レスポンス
     return ContentService
-      .createTextOutput(JSON.stringify({status: 'success'}))
+      .createTextOutput(JSON.stringify({
+        status: 'success', 
+        columns: row.length,
+        receivedRemarks: data.remarks || 'empty'
+      }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     // エラーレスポンス
+    console.error('Error:', error);
     return ContentService
       .createTextOutput(JSON.stringify({status: 'error', message: error.toString()}))
       .setMimeType(ContentService.MimeType.JSON);
@@ -70,9 +90,25 @@ function doGet(e) {
   return ContentService
     .createTextOutput(JSON.stringify({
       status: 'ok',
-      message: 'Working!'
+      message: 'Working! (24-column version)'
     }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ========== ここまでコピー ==========
+
+/*
+このバージョンの列構造：
+A: タイムスタンプ
+B: 会社名
+C: 業種
+D: 従業員数
+E: 氏名
+F: メールアドレス
+G-U: 質問1-15
+V: 総合得点
+W: 評価
+X: 備考（remarks）
+
+合計: 24列
+*/
