@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>LocalStorage確認ツール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .data {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>LocalStorage データ確認ツール</h1>
+    
+    <div class="section">
+        <h2>保存されているデータ</h2>
+        <button onclick="checkLocalStorage()">LocalStorageを確認</button>
+        <button onclick="clearLocalStorage()">LocalStorageをクリア</button>
+        
+        <div id="surveyData" class="data"></div>
+        <div id="remarksData" class="data"></div>
+    </div>
+
+    <div class="section">
+        <h2>テスト用remarksを設定</h2>
+        <textarea id="testRemarks" rows="4" style="width: 100%; padding: 10px;">
+これはLocalStorageテスト用のヒアリングメモです。
+複数行のテキストも含めて確認します。
+特殊文字: !@#$%^&*()
+        </textarea>
+        <br>
+        <button onclick="setTestRemarks()">テスト用remarksを設定</button>
+        <div id="setStatus"></div>
+    </div>
+
+    <div class="warning">
+        <strong>注意:</strong> このツールは本番サイト（https://regit-hino.github.io/AI_Analytics_Tool_Ver1.0/）で実行してください。
+        LocalStorageはドメインごとに分離されているため、ローカル環境では本番のデータを確認できません。
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            // survey data
+            const surveyData = localStorage.getItem('ai-survey-data');
+            const surveyElement = document.getElementById('surveyData');
+            if (surveyData) {
+                const parsed = JSON.parse(surveyData);
+                surveyElement.textContent = 'ai-survey-data:\n' + JSON.stringify(parsed, null, 2);
+            } else {
+                surveyElement.textContent = 'ai-survey-data: (データなし)';
+            }
+            
+            // remarks
+            const remarks = localStorage.getItem('ai-survey-remarks');
+            const remarksElement = document.getElementById('remarksData');
+            if (remarks) {
+                remarksElement.textContent = `ai-survey-remarks:\n"${remarks}"\n\n長さ: ${remarks.length}文字`;
+            } else {
+                remarksElement.textContent = 'ai-survey-remarks: (データなし)';
+            }
+        }
+        
+        function clearLocalStorage() {
+            if (confirm('LocalStorageのデータを削除しますか？')) {
+                localStorage.removeItem('ai-survey-data');
+                localStorage.removeItem('ai-survey-remarks');
+                alert('LocalStorageをクリアしました');
+                checkLocalStorage();
+            }
+        }
+        
+        function setTestRemarks() {
+            const testRemarks = document.getElementById('testRemarks').value;
+            localStorage.setItem('ai-survey-remarks', testRemarks);
+            document.getElementById('setStatus').textContent = `設定完了: ${testRemarks.length}文字のremarksを保存しました`;
+            checkLocalStorage();
+        }
+        
+        // ページ読み込み時に自動でチェック
+        window.onload = checkLocalStorage;
+    </script>
+</body>
+</html>

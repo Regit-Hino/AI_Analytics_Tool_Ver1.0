@@ -142,13 +142,20 @@ function App() {
         )}
 
         {appState === 'results' && surveyData.score !== undefined && surveyData.tier && (
-          <Results
-            score={surveyData.score}
-            tier={surveyData.tier}
-            answers={surveyData.answers}
-            remarks={remarks}
-            onRestart={handleRestart}
-          />
+          (() => {
+            console.log('=== App passing to Results ===');
+            console.log('remarks state:', remarks);
+            console.log('remarks length:', remarks ? remarks.length : 0);
+            return (
+              <Results
+                score={surveyData.score}
+                tier={surveyData.tier}
+                answers={surveyData.answers}
+                remarks={remarks}
+                onRestart={handleRestart}
+              />
+            );
+          })()
         )}
         </AnimatePresence>
       </div>

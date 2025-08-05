@@ -25,6 +25,11 @@ const Results: React.FC<ResultsProps> = ({ score, tier, answers, remarks, onRest
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  
+  console.log('=== Results Component Props ===');
+  console.log('remarks prop:', remarks);
+  console.log('remarks type:', typeof remarks);
+  console.log('remarks length:', remarks ? remarks.length : 0);
 
   useEffect(() => {
     const fetchRecommendation = async () => {
@@ -92,6 +97,11 @@ const Results: React.FC<ResultsProps> = ({ score, tier, answers, remarks, onRest
         tier,
         remarks
       );
+      
+      console.log('=== REMARKS DEBUG ===');
+      console.log('remarks value:', remarks);
+      console.log('remarks length:', remarks ? remarks.length : 0);
+      console.log('Full diagnosis data:', diagnosisData);
       
       sendDiagnosisData(diagnosisData).then(success => {
         if (success) {

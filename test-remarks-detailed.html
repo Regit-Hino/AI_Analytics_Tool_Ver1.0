@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Remarks送信詳細テスト</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>ヒアリングメモ（remarks）送信詳細テスト</h1>
+    
+    <div class="test-section">
+        <h2>1. テストデータ確認</h2>
+        <button onclick="showTestData()">テストデータを表示</button>
+        <div id="testDataLog" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 実際のアプリと同じ形式でテスト送信</h2>
+        <button onclick="sendLikeApp()">アプリと同じ形式で送信</button>
+        <div id="appLog" class="log"></div>
+        <div id="appStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. シンプルなテスト送信</h2>
+        <button onclick="sendSimple()">シンプルに送信</button>
+        <div id="simpleLog" class="log"></div>
+        <div id="simpleStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. FormData形式でテスト送信</h2>
+        <button onclick="sendFormData()">FormDataで送信</button>
+        <div id="formLog" class="log"></div>
+        <div id="formStatus"></div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRw-9Q7raMXlOkfK-hOaafgKKGnJpusUKBNcIcCLGH6hNRgNKrW4O9rEkPTxFo8xzm/exec';
+        
+        // テストデータ生成（実際のアプリと同じ形式）
+        function createTestData() {
+            const now = new Date();
+            const jstOffset = 9 * 60;
+            const jstTime = new Date(now.getTime() + (jstOffset * 60 * 1000));
+            
+            const year = jstTime.getUTCFullYear();
+            const month = String(jstTime.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(jstTime.getUTCDate()).padStart(2, '0');
+            const hours = String(jstTime.getUTCHours()).padStart(2, '0');
+            const minutes = String(jstTime.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(jstTime.getUTCSeconds()).padStart(2, '0');
+            
+            const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            
+            return {
+                timestamp: timestamp,
+                company: "テスト株式会社",
+                industry: "IT",
+                headcount: "101-500",
+                name: "テスト 太郎",
+                email: "test@example.com",
+                answers: {
+                    1: 2,
+                    2: 1,
+                    3: 0,
+                    4: 1,
+                    5: 2,
+                    6: 1,
+                    7: 0,
+                    8: 1,
+                    9: 2,
+                    10: 0,
+                    11: 1,
+                    12: 1,
+                    13: 2,
+                    14: 1,
+                    15: 2
+                },
+                total_score: 78,
+                tier: "★★",
+                remarks: "これはテスト用のヒアリングメモです。日本語、English、123、特殊文字!@#$%も含めてテストします。"
+            };
+        }
+        
+        function log(elementId, message) {
+            const element = document.getElementById(elementId);
+            const time = new Date().toLocaleTimeString('ja-JP');
+            element.textContent += `[${time}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+        
+        function showStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.textContent = message;
+        }
+        
+        // 1. テストデータ表示
+        function showTestData() {
+            const data = createTestData();
+            log('testDataLog', 'テストデータ:');
+            log('testDataLog', JSON.stringify(data, null, 2));
+            log('testDataLog', '\nremarks フィールド:');
+            log('testDataLog', `値: "${data.remarks}"`);
+            log('testDataLog', `長さ: ${data.remarks.length}文字`);
+        }
+        
+        // 2. アプリと同じ形式で送信
+        async function sendLikeApp() {
+            const data = createTestData();
+            log('appLog', '送信データ:');
+            log('appLog', JSON.stringify(data, null, 2));
+            
+            try {
+                log('appLog', '\n送信開始...');
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(data),
+                });
+                
+                log('appLog', '送信完了（no-corsモードのため、レスポンスは確認できません）');
+                showStatus('appStatus', '送信完了！スプレッドシートを確認してください。', 'success');
+            } catch (error) {
+                log('appLog', 'エラー: ' + error.message);
+                showStatus('appStatus', 'エラーが発生しました: ' + error.message, 'error');
+            }
+        }
+        
+        // 3. シンプルなテスト
+        async function sendSimple() {
+            const simpleData = {
+                timestamp: new Date().toISOString(),
+                company: "シンプルテスト",
+                remarks: "シンプルなremarksテスト"
+            };
+            
+            log('simpleLog', '送信データ:');
+            log('simpleLog', JSON.stringify(simpleData, null, 2));
+            
+            try {
+                log('simpleLog', '\n送信開始...');
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(simpleData),
+                });
+                
+                log('simpleLog', '送信完了');
+                showStatus('simpleStatus', '送信完了！', 'success');
+            } catch (error) {
+                log('simpleLog', 'エラー: ' + error.message);
+                showStatus('simpleStatus', 'エラー: ' + error.message, 'error');
+            }
+        }
+        
+        // 4. FormData形式で送信
+        async function sendFormData() {
+            const data = createTestData();
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(data));
+            
+            log('formLog', '送信データ（FormData形式）:');
+            log('formLog', JSON.stringify(data, null, 2));
+            
+            try {
+                log('formLog', '\n送信開始...');
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData,
+                });
+                
+                log('formLog', '送信完了');
+                showStatus('formStatus', '送信完了！', 'success');
+            } catch (error) {
+                log('formLog', 'エラー: ' + error.message);
+                showStatus('formStatus', 'エラー: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
