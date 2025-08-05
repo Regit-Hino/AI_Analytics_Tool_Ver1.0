@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Remarks Debug Test</title>
+</head>
+<body>
+    <h1>ヒアリングメモ送信テスト</h1>
+    <div id="status">準備中...</div>
+    <button onclick="sendTest()">テスト送信</button>
+    <pre id="result"></pre>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRw-9Q7raMXlOkfK-hOaafgKKGnJpusUKBNcIcCLGH6hNRgNKrW4O9rEkPTxFo8xzm/exec';
+        
+        async function sendTest() {
+            const testData = {
+                timestamp: new Date().toISOString(),
+                company: "デバッグテスト会社",
+                industry: "IT",
+                headcount: "1-50",
+                name: "テスト太郎",
+                email: "debug@test.com",
+                answers: {
+                    1: 2,
+                    2: 1,
+                    3: 0,
+                    4: 1,
+                    5: 2
+                },
+                total_score: 85,
+                tier: "★★★",
+                remarks: "これはヒアリングメモのテストです。日本語も含めて正しく送信されるか確認します。"
+            };
+            
+            document.getElementById('status').textContent = '送信中...';
+            document.getElementById('result').textContent = 'データ: ' + JSON.stringify(testData, null, 2);
+            
+            try {
+                // Method 1: JSON
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(testData),
+                });
+                
+                document.getElementById('status').textContent = '送信完了！（JSON方式）';
+                
+                // Also try FormData
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(testData));
+                
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData,
+                });
+                
+                document.getElementById('status').textContent = '送信完了！（JSON + FormData方式）';
+                
+            } catch (error) {
+                document.getElementById('status').textContent = 'エラー: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
